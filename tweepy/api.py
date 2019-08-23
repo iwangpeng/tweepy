@@ -25,7 +25,7 @@ class API(object):
     """Twitter API"""
 
     max_size_standard = 5120  # standard uploads must be less then 5 MB
-    max_size_chunked = 15360  # chunked uploads must be less than 15 MB
+    max_size_chunked = 524288  # chunked uploads must be less than 512 MB
 
     def __init__(self, auth_handler=None,
                  host='api.twitter.com', search_host='search.twitter.com',

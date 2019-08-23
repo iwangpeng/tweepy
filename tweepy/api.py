@@ -216,7 +216,7 @@ class API(object):
             size = f.tell()
             f.seek(0)
 
-        if mime in IMAGE_MIMETYPES and size < self.max_size_standard:
+        if mime in IMAGE_MIMETYPES and size < self.max_size_standard * 1024:
             return self.image_upload(filename, f=f, *args, **kwargs)
 
         elif mime in CHUNKED_MIMETYPES:

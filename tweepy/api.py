@@ -4,6 +4,7 @@
 
 import mimetypes
 import os
+import time
 
 import six
 
@@ -220,7 +221,8 @@ class API(object):
             return self.image_upload(filename, f=f, *args, **kwargs)
 
         elif mime in CHUNKED_MIMETYPES:
-            return self.upload_chunked(filename, f=f, *args, **kwargs)
+            media_process = self.upload_chunked(filename, f=f, *args, **kwargs)
+            return self._wait_until_media_process_complete(media_process)
 
         else:
             raise TweepError("Can't upload media with mime type %s" % mime)
@@ -306,6 +308,33 @@ class API(object):
             )(*args, **kwargs)
         else:
             return media_info
+
+    def _wait_until_media_process_complete(self, media_process):
+        """ pending -> in_progress -> [failed | succeeded] """
+        processing_info = getattr(media_process, 'processing_info', {})
+        processing_state = processing_info.get('state', 'succeeded')
+        if processing_state in ['pending', 'in_progress']:
+            time.sleep(processing_info.get('check_after_secs', 1))
+            media_process = self._get_media_process(command='STATUS', media_id=media_process.media_id)
+            return self._wait_until_media_process_complete(media_process)
+        elif processing_state == 'succeeded':
+            return media_process
+        elif processing_state == 'failed':
+            raise TweepError(processing_info['error']['message'])
+
+    @property
+    def _get_media_process(self):
+        """ :reference: https://developer.twitter.com/en/docs/media/upload-media/api-reference/get-media-upload-status
+            :allowed_param:'command', 'media_id'
+        """
+        return bind_api(
+            api=self,
+            path='/media/upload.json',
+            payload_type='media',
+            allowed_param=['command', 'media_id'],
+            require_auth=True,
+            upload_api=True
+        )
 
     def update_with_media(self, filename, *args, **kwargs):
         """ :reference: https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update_with_media

@@ -187,7 +187,8 @@ def bind_api(**config):
                                                     json=self.json_payload,
                                                     timeout=self.api.timeout,
                                                     auth=auth,
-                                                    proxies=self.api.proxy)
+                                                    proxies=self.api.proxy,
+                                                    verify=self.api.verify_ssl)
                     except UnicodeEncodeError:
                         resp = self.session.request(self.method,
                                                     full_url,
@@ -195,7 +196,8 @@ def bind_api(**config):
                                                     json=self.json_payload,
                                                     timeout=self.api.timeout,
                                                     auth=auth,
-                                                    proxies=self.api.proxy)
+                                                    proxies=self.api.proxy,
+                                                    verify=self.api.verify_ssl)
                 except Exception as e:
                     six.reraise(TweepError, TweepError('Failed to send request: %s' % e), sys.exc_info()[2])
 

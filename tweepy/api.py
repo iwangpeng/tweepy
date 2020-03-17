@@ -33,7 +33,7 @@ class API(object):
                  search_root='', upload_root='/1.1', retry_count=0,
                  retry_delay=0, retry_errors=None, timeout=60, parser=None,
                  compression=False, wait_on_rate_limit=False,
-                 wait_on_rate_limit_notify=False, proxy=''):
+                 wait_on_rate_limit_notify=False, proxy='', verify_ssl=None):
         """ Api instance Constructor
 
         :param auth_handler:
@@ -53,6 +53,9 @@ class API(object):
         :param wait_on_rate_limit: If the api wait when it hits the rate limit, default:False
         :param wait_on_rate_limit_notify: If the api print a notification when the rate limit is hit, default:False
         :param proxy: Url to use as proxy during the HTTP request, default:''
+        :param verify_ssl: Either a boolean, in which case it controls whether we verify the server's TLS certificate,
+                           or a string, in which case it must be a path to a CA bundle to use.
+                           default:True.
 
         :raise TypeError: If the given parser is not a ModelParser instance.
         """
@@ -75,6 +78,7 @@ class API(object):
         self.proxy = {}
         if proxy:
             self.proxy['https'] = proxy
+        self.verify_ssl = verify_ssl
 
         # Attempt to explain more clearly the parser argument requirements
         # https://github.com/tweepy/tweepy/issues/421

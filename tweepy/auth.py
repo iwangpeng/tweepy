@@ -36,7 +36,7 @@ class OAuthHandler(AuthHandler):
     OAUTH_HOST = 'api.twitter.com'
     OAUTH_ROOT = '/oauth/'
 
-    def __init__(self, consumer_key, consumer_secret, callback=None):
+    def __init__(self, consumer_key, consumer_secret, callback=None, proxy=None):
         if type(consumer_key) == six.text_type:
             consumer_key = consumer_key.encode('ascii')
 
@@ -50,6 +50,7 @@ class OAuthHandler(AuthHandler):
         self.callback = callback
         self.username = None
         self.request_token = {}
+        self.proxies = {'https': proxy} if proxy else {}
         self.oauth = OAuth1Session(consumer_key,
                                    client_secret=consumer_secret,
                                    callback_uri=self.callback)
@@ -69,7 +70,7 @@ class OAuthHandler(AuthHandler):
             url = self._get_oauth_url('request_token')
             if access_type:
                 url += '?x_auth_access_type=%s' % access_type
-            return self.oauth.fetch_request_token(url)
+            return self.oauth.fetch_request_token(url, proxies=self.proxies)
         except Exception as e:
             raise TweepError(e)
 
@@ -105,7 +106,7 @@ class OAuthHandler(AuthHandler):
                                        resource_owner_key=self.request_token['oauth_token'],
                                        resource_owner_secret=self.request_token['oauth_token_secret'],
                                        verifier=verifier, callback_uri=self.callback)
-            resp = self.oauth.fetch_access_token(url)
+            resp = self.oauth.fetch_access_token(url, proxies=self.proxies)
             self.access_token = resp['oauth_token']
             self.access_token_secret = resp['oauth_token_secret']
             return self.access_token, self.access_token_secret

@@ -141,6 +141,20 @@ class Status(Model):
         return not result
 
 
+class Tweet(Model):
+
+    @classmethod
+    def parse(cls, api, json):
+        tweet = cls(api)
+        setattr(tweet, '_json', json)
+        for k, v in json['data'].items():
+            setattr(tweet, k, v)
+        return tweet
+
+    def delete(self):
+        return self._api.delete_tweet(self.id)
+
+
 class User(Model):
 
     @classmethod
@@ -225,6 +239,19 @@ class User(Model):
 
         return not result
 
+
+class UserV2(Model):
+
+    @classmethod
+    def parse(cls, api, json):
+        user = cls(api)
+        setattr(user, '_json', json)
+        for k, v in json['data'].items():
+            if k == 'created_at':
+                setattr(user, k, parse_datetime(v))
+            else:
+                setattr(user, k, v)
+        return user
 
 class DirectMessage(Model):
 
@@ -504,7 +531,9 @@ class ModelFactory(object):
     """
 
     status = Status
+    tweet = Tweet
     user = User
+    user_v2 = UserV2
     direct_message = DirectMessage
     friendship = Friendship
     saved_search = SavedSearch

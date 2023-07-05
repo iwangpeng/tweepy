@@ -216,7 +216,9 @@ def bind_api(**config):
                     continue
                 retry_delay = self.retry_delay
                 # Exit request loop if non-retry error code
-                if resp.status_code in (200, 204):
+                if resp.status_code in (200, 201, 204):
+                    break
+                elif resp.status_code in (400, 401, 403):
                     break
                 elif (resp.status_code == 429 or resp.status_code == 420) and self.wait_on_rate_limit:
                     if 'retry-after' in resp.headers:
@@ -230,12 +232,12 @@ def bind_api(**config):
 
             # If an error was returned, throw an exception
             self.api.last_response = resp
-            if resp.status_code and not 200 <= resp.status_code < 300:
+            if resp.text.startswith('{"errors":') or (resp.status_code and not 200 <= resp.status_code < 300):
                 try:
                     error_msg, api_error_code = \
                         self.parser.parse_error(resp.text)
                 except Exception:
-                    error_msg = "Twitter error response: status code = %s" % resp.status_code
+                    error_msg = "Twitter error response: status code = %s, text = %s" % (resp.status_code, resp.text)
                     api_error_code = None
 
                 if is_rate_limit_error_message(error_msg):

@@ -189,6 +189,18 @@ class API(object):
             allowed_param=['id']
         )
 
+    @property
+    def get_tweet(self):
+        """ :reference: https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference/get-tweets-id
+            :allowed_param:'id'
+        """
+        return bind_api(
+            api=self,
+            path='/tweets/{id}',
+            payload_type='tweet',
+            allowed_param=['id', 'tweet.fields']
+        )
+
     def update_status(self, *args, **kwargs):
         """ :reference: https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update
             :allowed_param:'status', 'in_reply_to_status_id', 'in_reply_to_status_id_str', 'auto_populate_reply_metadata', 'lat', 'long', 'source', 'place_id', 'display_coordinates', 'media_ids'
@@ -206,6 +218,24 @@ class API(object):
             allowed_param=['status', 'in_reply_to_status_id', 'in_reply_to_status_id_str', 'auto_populate_reply_metadata', 'lat', 'long', 'source', 'place_id', 'display_coordinates'],
             require_auth=True
         )(post_data=post_data, *args, **kwargs)
+
+    def create_tweet(self, *args, **kwargs):
+        """ :reference: https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets
+            :allowed_param: 'text', 'media', 'reply', 'geo'
+        """
+        json_payload = {}
+        json_payload_params = ['text', 'media', 'reply', 'geo']
+        for k in json_payload_params:
+            if k in kwargs:
+                json_payload[k] = kwargs.pop(k)
+
+        return bind_api(
+            api=self,
+            path='/tweets',
+            method='POST',
+            payload_type='tweet',
+            require_auth=True
+        )(json_payload=json_payload, *args, **kwargs)
 
     def media_upload(self, filename, *args, **kwargs):
         """ :reference: https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload
@@ -375,6 +405,20 @@ class API(object):
         )
 
     @property
+    def delete_tweet(self):
+        """ :reference: https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/delete-tweets-id
+            :allowed_param: 'id'
+        """
+        return bind_api(
+            api=self,
+            path='/tweets/{id}',
+            method='DELETE',
+            payload_type='tweet',
+            allowed_param=['id'],
+            require_auth=True
+        )
+
+    @property
     def retweet(self):
         """ :reference: https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-retweet-id
             :allowed_param:'id'
@@ -482,6 +526,18 @@ class API(object):
     def me(self):
         """ Get the authenticated user """
         return self.get_user(screen_name=self.auth.get_username())
+
+    def me_v2(self, *args, **kwargs):
+        """ :reference: https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-me
+            allowed_param: 'user.fields'
+        """
+        return bind_api(
+            api=self,
+            path='/users/me',
+            payload_type='user_v2',
+            allowed_param=['user.fields'],
+            require_auth=True,
+        )(*args, **kwargs)
 
     @property
     def search_users(self):
@@ -888,7 +944,7 @@ class API(object):
             allowed_param=['cursor'],
             require_auth=True
         )
-    
+
     @property
     def mutes(self):
         """ :reference: https://developer.twitter.com/en/docs/accounts-and-users/mute-block-report-users/api-reference/get-mutes-users-list
@@ -901,7 +957,7 @@ class API(object):
             allowed_param=['cursor', 'include_entities', 'skip_status'],
             required_auth=True
         )
-           
+
 
     @property
     def create_mute(self):
@@ -1586,4 +1642,4 @@ class API(object):
             else:
                 return prefix + '_image'
         elif file_type == 'video/mp4':
-                    return prefix + '_video'
+            return prefix + '_video'
